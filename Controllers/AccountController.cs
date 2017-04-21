@@ -13,6 +13,7 @@ using CZDailyFinance.Models;
 
 namespace CZDailyFinance.Controllers
 {
+//testtesttest
     [Authorize]
     [InitializeSimpleMembership]
     public class AccountController : Controller
