@@ -14,10 +14,20 @@ namespace CZDailyFinance.Controllers
         DBFinanceDataContext context = new DBFinanceDataContext();
         public ActionResult Index()
         {
-            var purchasedProducts = context.PurchasedProducts;
-            ViewBag.TotalReturnAmount = context.PurchasedProducts.Sum(p => p.ReturnAmount);
+            return View();
+        }
+
+        public ActionResult GetList(string startDate, string endDate)
+        {
+            var purchasedProducts = context.PurchasedProducts.AsQueryable();
+            if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+            {
+                purchasedProducts = context.PurchasedProducts.Where(q => q.PurchasedDate > Convert.ToDateTime(startDate) && q.PurchasedDueDate < Convert.ToDateTime(endDate));
+            }
+            ViewBag.TotalReturnAmount = purchasedProducts.Sum(p => p.ReturnAmount);
             return View(purchasedProducts);
         }
 
+       
     }
 }
