@@ -1,0 +1,44 @@
+﻿@{
+    ViewBag.Title = "AddProduct";
+    Layout = null;
+}
+@model DBFinanceLinq.PurchasedProducts
+
+<form method="post" action="/ProductSummary/AddProduct">
+    <table>
+        <input type="hidden" value="@Model.ProductId" />
+        <tr>
+            <td><label>产品名称</label></td>
+            <td><input type="text" name="ProductName" value="@Model.ProductName" /></td>
+        </tr>
+        <tr>
+            <td><label>成立日</label></td>
+            <td><input type="text" name="PurchasedDate" value="@Model.PurchasedDate" /></td>
+        </tr>
+        <tr>
+            <td><label>到期日</label></td>
+            <td><input type="text" name="PurchasedDueDate" value="@Model.PurchasedDueDate" /></td>
+        </tr>
+        <tr>
+            <td><label>总天数</label></td>
+            <td><input type="text" name="PurchasedDays" value="@Model.PurchasedDays" /> </td>
+        </tr>
+        <tr>
+            <td><label>估计收益率</label></td>
+            <td><input type="text" name="ReturnRate" value="@Model.ReturnRate" /> </td>
+        </tr>
+        <tr>
+            <td><label>管理费</label></td>
+            <td><input type="text" name="ManagementRate" value="@Model.ManagementRate" /></td>
+        </tr>
+        <tr>
+            <td><label>金额</label></td>
+            <td><input type="text" name="PurchasedAmount" value="@Model.PurchasedAmount" /></td>
+        </tr>
+        <tr>
+            <td><label>收益</label></td>
+            <td><input type="text" name="ReturnAmount" value="@Model.ReturnAmount" /></td>
+        </tr>
+    </table>
+    <input type="submit" id="submitAdd" value="提交" />
+</form>

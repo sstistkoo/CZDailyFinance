@@ -1,0 +1,339 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+@model DBFinanceLinq.PurchasedProducts
+
+<h2>购买产品信息</h2>
+<button id="createProduct">Add Product</button>
+<button id="multipleDeleteBtn" class="btn btn-danger" data-confirm="确定要删除吗？" data-url="/ProductSummary/DeleteMultiPurchasedProducts">批量删除</button>
+<div id="addDialog">
+    @*<form>
+            <fieldset>
+                <label>产品名称</label>
+                <input type="text" name="ProductName" value="@Model.ProductName" />
+                <label>成立日</label>
+                <input type="text" name="PurchasedDate" value="@Model.PurchasedDate" />
+                <label>到期日</label>
+                <input type="text" name="PurchasedDueDate" value="@Model.PurchasedDueDate" />
+                <label>总天数</label>
+                <input type="text" name="PurchasedDays" value="@Model.PurchasedDays" />
+                <label>估计收益率</label>
+                <input type="text" name="ReturnRate" value="@Model.ReturnRate" />
+                <label>管理费</label>
+                <input type="text" name="ManagementRate" value="@Model.ManagementRate" />
+                <label>金额</label>
+                <input type="text" name="PurchasedAmount" value="@Model.PurchasedAmount" />
+                <label>收益</label>
+                <input type="text" name="ReturnAmount" value="@Model.ReturnAmount" />
+            </fieldset>
+        </form>*@
+</div>
+<div>
+    <div class="btn-group" style="float:right">
+        <button id="activeBtn" type="button" class="btn btn-default active">现有的</button>
+        <button id="recycleBtn" type="button" class="btn btn-default">过期的</button>
+    </div>
+</div>
+
+<table id="listTable">
+    <tfoot>
+        <tr>
+            <th colspan="7" style="text-align:right">Total:</th>
+            <th colspan="5"></th>
+        </tr>
+    </tfoot>
+</table>
+
+<script type="text/javascript">
+    $(function () {
+        //var dialog;
+        //dialog = $("#addDialog").dialog({
+        //    autoOpen: false,
+        //    height: 400,
+        //    width: 650,
+        //    modal: true,
+        //    buttons: {
+        //        "添加产品": addProduct,
+        //        "取消": function () {
+        //            dialog.dialog("close");
+        //        }
+        //    }
+        //});
+
+        function addProduct() {
+            //$.post("/ProductSummary/AddProduct");//不能简单的这么应用,否则Controller绑定的PurchasedProducts productModel为NULL
+            var modal = $("#addDialog");
+            modal.find("#submitAdd").click(function () {
+                $("form").on("submit", function () {
+                    $(this).ajaxSubmit(
+                        {
+                            success: function (data) {
+                                if (data.success) {
+                                    modal.dialog("close");
+                                    $("#listTable").DataTable().draw(false);
+                                }
+                                else {
+                                    alert("Error");
+                                }
+                            },
+                            error: function () { alert("Error"); }
+                        });
+                    return false;//不要转页面，保留在原页面
+                })
+            });
+            modal.find("#submitAdd").click(); //注意上面是先定义（绑定），这边再触发。
+        };
+        //$("#createProduct").click(
+        //    function () {
+        //        dialog.dialog("open");
+        //    })
+        $("#multipleDeleteBtn").click(function () {
+            var idArray = [];
+            $('#listTable tbody input:checked').each(
+                function () {
+                    idArray.push($(this).attr("data-id"));
+                }
+                );
+            if (idArray.length == 0) {
+                alert("请选择要删除的项");
+                //return false;
+            }
+            else if (confirm("确定要删除吗？")) {
+                $.post($(this).attr('data-url'), { ids: idArray.join(",") }, function () {
+                    $('#listTable').DataTable().draw();
+                    $('#listTable th input[type=checkbox]').prop("checked", "");
+                })
+            }
+            return false;
+        })
+
+        $("#createProduct").click(
+            function () {
+                $.ajax({
+                    url: "/ProductSummary/AddProduct",
+                    type: "Get",
+                    success: function (data) {
+                        $("#addDialog").html(data).dialog(
+                            {
+                                height: 600,
+                                width: 600,
+                                buttons: {
+                                    "添加产品": addProduct,
+                                    "取消": function () {
+                                        $(this).dialog("close");
+                                    }
+                                }
+                            }
+                            )
+                    }
+                })
+            });
+
+        $("#activeBtn").click(function () {
+            $(this).addClass("active");
+            $("#recycleBtn").removeClass("active");
+            var table = $("#listTable").DataTable();
+            table.draw();
+        });
+
+        $("#recycleBtn").click(function () {
+            $(this).addClass("active");
+            $("#activeBtn").removeClass("active");
+            var table = $("#listTable").DataTable();
+            table.draw();
+        });
+
+
+
+
+        $("#listTable").dataTable({
+            "iDisplayLength": 250,
+            lengthMenu: [[10, 25, 50, 250, -1], [10, 25, 50, 250, "All"]],
+            ajaxSource: "/ProductSummary/List",
+            stateSave:true,
+            serverSide: true,
+            serverParams: function (aoData) {
+                aoData.push({ "name": "isExpired", "value": $("#recycleBtn").hasClass("active") });
+            },
+            sorting: [[5, "desc"]],
+            columns: [
+                    {
+                        data: "PurchasedProId", title: '<input type="checkbox">', sortable: false,
+                        searchable: false, width: 16, render: function (data) {
+                            return '<input type="checkbox" data-id="' + data + '">';
+                        }
+                    },
+
+                    {
+                        data: null, orderable: false, "class": "details-control", defaultContent: ""
+                    },
+                    {
+                        data: "PurchasedProId", sortable: false, searchable: false, width: 16
+                    },
+                    {
+                        data: "ProductName", title: "产品", searchable: true,width:400
+                    },
+                    {
+                        data: "PurchasedDate", title: "成立日", searchable: true,
+                        render: function (data, type, row) {
+                            return $.cc.parseJSONDate(data);
+                        }
+                    },
+                    {
+                        data: "PurchasedDueDate", title: "到期日", searchable: true,
+                        render: function (data, type, row) {
+                            return $.cc.parseJSONDate(data);
+                        }
+                    },
+                    {
+                        data: "PurchasedDays", title: "天数", searchable: false
+                    },
+                     { data: "PurchasedAmount", title: "购买金额", searchable: true },
+                    { data: "ReturnAmount", title: "收益", searchable: true },
+                    {
+                        data: "null", title: "万份收益", searchable: false, render: function (data, type, row) {
+                            if (row.ReturnAmount == 0 || row.ReturnAmount == null) {                               
+                                return null;
+                            }
+                            else {
+                                var returnRate = row.ReturnAmount / row.PurchasedAmount / row.PurchasedDays * 10000;
+                                returnRate = returnRate.toFixed(2);
+                                return returnRate;
+                            }
+                        }
+                    },
+                    {
+                        data: null, title: "收益率", searchable: false, render: function (data, type, row) {
+                            if (row.ReturnAmount == null || row.ReturnAmount == 0) {
+                                return null;
+                            }
+                            else {
+                                var actualRate = row.ReturnAmount * 365 / row.PurchasedDays / row.PurchasedAmount * 100;
+                                return actualRate.toFixed(2)+"%";
+                            }
+                        }
+                    },
+                    {
+                        data: null, orderable: false, width: 115, render: function (data, type, row) {
+                            var html = "<a class='editLink' href='/ProductSummary/EditProduct/" + row.PurchasedProId + "'>编辑</a>"
+                            + "<a class='deleteLink' href='/ProductSummary/DeletePurchasedProduct/' data-id=" + row.PurchasedProId + ">删除</a>";
+                            return html;
+                        }
+
+                    }
+            ],
+            "drawCallback": function (settings) {
+                $table = $(this);
+                $table.find("th input[type=checkbox]").on("click", function () {
+                    $table.find("tbody tr td input[type=checkbox]").prop("checked", $(this).prop("checked"));//不能直接将 $table 直接替换为 $(this);
+                })
+
+                $("a.editLink").click(function () {
+                    $.ajax({
+                        url: $(this).attr("href"),
+                        type: "Get",
+                        success: function (data) {
+                            $("#addDialog").html(data).dialog(
+                                {
+                                    height: 600,
+                                    width: 600,
+                                    buttons: {
+                                        "添加产品": addProduct,
+                                        "取消": function () {
+                                            $(this).dialog("close");
+                                        }
+                                    }
+                                }
+                                )
+                        }
+                    });
+                    return false;
+                });
+                $("a.deleteLink").click(function () {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            url: $(this).attr("href"),
+                            type: "post",//注意只能用post，因为后面的方法是httppost,不然显示查不到
+                            data: {
+                                purchasedProductId: $(this).attr("data-id")
+                            },
+                            success: function (data) {
+                                $("#listTable").DataTable().draw(false);
+                                alert("success");
+                            }
+                        })
+                        //$.post($(this).attr("href"), { purchasedProductId: $(this).attr("data-id") }, function (data) {
+                        //    $("#productSummary").DataTable().draw(false);
+                        //})
+                    };
+                    return false;
+
+                })
+            },
+            "footerCallback": function (tfoot, data, start, end, display) {
+                var api = this.api(), data;
+
+                /*yina's method calculate current page total:*/
+                //var count = 0;
+                //api.column(5).data().each(function (data, i) {
+                //    if (data != null) {
+                //        count = count + data;
+                //    }
+                //})
+                //$(api.column(5).footer()).html(count);
+
+                /*api document---footer call back*/
+                // Remove the formatting to get integer data for summation
+                var intVal = function (i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                //Total over all pages
+                var total = api.column(8).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
+                //Total over this page
+                var pageTotal = api.column(8, { page: 'current' }).data().reduce(function (a, b) { return a + b; }, 0);
+                //Update footer
+                $(api.column(8).footer()).html(
+                    "$" + pageTotal + "($" + total + " total)"
+                    );
+            }
+        });
+        //注意一定要在加载datatable后面（DETAIL）
+        // Add event listener for opening and closing details
+        $("#listTable tbody").on('click', 'td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var table = $('#listTable').DataTable();
+            var row = table.row(tr);
+            if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                row.child(format(row.data())).show();
+                tr.addClass('shown');
+            }
+        });
+        function format(d) {
+            // `d` is the original data object for the row
+            return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">' +
+                '<tr>' +
+                    '<td>Full name:</td>' +
+                    '<td>' + 'd.name' + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<td>Extension number:</td>' +
+                    '<td>' + 'd.extn' + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<td>Extra info:</td>' +
+                    '<td>And any further details here (images etc)...</td>' +
+                '</tr>' +
+            '</table>';
+        };
+    })
+</script>
