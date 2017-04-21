@@ -45,6 +45,11 @@ namespace CZDailyFinance.Controllers
                 product.ProductName = productModel.ProductName;
                 product.PurchasedDate = Convert.ToDateTime(productModel.PurchasedDate);
                 product.PurchasedDueDate = Convert.ToDateTime(productModel.PurchasedDueDate);
+                product.PurchasedDays = productModel.PurchasedDays;
+                product.ReturnAmount = productModel.ReturnAmount;
+                product.ReturnRate = productModel.ReturnRate;
+                product.ManagementRate = productModel.ManagementRate;
+                product.PurchasedAmount = productModel.PurchasedAmount;
                 context.SubmitChanges();
             }
             return new OKJsonResult();
@@ -57,6 +62,11 @@ namespace CZDailyFinance.Controllers
             product.ProductName = productModel.ProductName;
             product.PurchasedDate = Convert.ToDateTime(productModel.PurchasedDate);
             product.PurchasedDueDate = Convert.ToDateTime(productModel.PurchasedDueDate);
+            product.PurchasedDays = productModel.PurchasedDays;
+            product.ReturnAmount = productModel.ReturnAmount;
+            product.ReturnRate = productModel.ReturnRate;
+            product.ManagementRate = productModel.ManagementRate;
+            product.PurchasedAmount = productModel.PurchasedAmount;
             context.PurchasedProducts.InsertOnSubmit(product);
             context.SubmitChanges();
             return new OKJsonResult();
@@ -74,31 +84,22 @@ namespace CZDailyFinance.Controllers
             return new OKJsonResult();
         }
 
-        [HttpPost]
-        public JsonResult DeleteMultiPurchasedProducts(string ids)
-        {
-            List<PurchasedProducts> products = new List<PurchasedProducts>();
-            string[] purchasedProductIds=ids.Split(',');
-            foreach(var id in purchasedProductIds)
-            {
-                products.Add(context.PurchasedProducts.FirstOrDefault(q => q.PurchasedProId ==Convert.ToInt32 (id)));
-            }
-            context.PurchasedProducts.DeleteAllOnSubmit(products);
-            context.SubmitChanges();
-            return new OKJsonResult();
-        }
 
-      
+        //public ViewResult DeletePurchasedProduct()
+        //{
+        //    return View();
+        //}
+
         public JsonResult List(bool isExpired)
         {
             IQueryable<PurchasedProducts> productList = null;
             if (isExpired)
             {
-                productList = context.PurchasedProducts.Where(q =>  q.PurchasedDueDate < DateTime.Today);
+                productList = context.PurchasedProducts.Where(q =>  q.PurchasedDueDate < DateTime.Today).OrderByDescending(q=>q.PurchasedDate);
             }
             else
             {
-                productList = context.PurchasedProducts.Where(q => q.PurchasedDueDate == null || q.PurchasedDueDate >= DateTime.Today);
+                productList = context.PurchasedProducts.Where(q => q.PurchasedDueDate == null || q.PurchasedDueDate >= DateTime.Today).OrderByDescending(q => q.PurchasedDate);
             }
             DataTablesParser<PurchasedProducts> parser = new DataTablesParser<PurchasedProducts>(Request, productList);
             FormatedList<PurchasedProducts> list = parser.Parse();
