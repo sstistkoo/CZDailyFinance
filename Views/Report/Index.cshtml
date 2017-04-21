@@ -1,41 +1,21 @@
 ﻿@{
     ViewBag.Title = "Index";
 }
-@using DBFinanceLinq;
-@model IQueryable<PurchasedProducts>
+
 <h2>报告</h2>
-<table>
-    <thead>
-        <tr>
-            <th>产品号</th>
-            <th>产品</th>
-            <th>成立日</th>
-            <th>到期日</th>
-            <th>天数</th>
-            <th>购买金额</th>
-            <th>收益</th>
-        </tr>
+时间：从<input type="text" id="startDate" />到<input type="text" id="endDate" />
+<button id="searchReport" data-url="Report/GetList">查询</button>
+<button id="exportReport">导出数据</button>
 
-    </thead>
-
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.PurchasedProId</td>
-                <td>@item.ProductName</td>
-                <td>@item.PurchasedDate.Value.ToShortDateString()</td>
-                <td>@item.PurchasedDueDate.Value.ToShortDateString()</td>
-                <td>@item.PurchasedDays</td>
-                <td>@item.PurchasedAmount</td>
-                <td>@item.ReturnAmount</td>
-            </tr>
-        }
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="6"></td>
-            <td>@ViewBag.TotalReturnAmount</td>
-        </tr>
-    </tfoot>
-</table>
+@Html.Action("GetList", "Report");
+<script type="text/javascript">
+    $(function () {
+        $("#searchReport").click(function () {
+            $.post($(this).attr("data-url"), { startDate: $("#startDate").val(), endDate: $("#endDate").val() }, function (data) {
+                $("#reportData").html(data);
+                alert("success");
+            });
+            return false;
+        })
+    })
+</script>

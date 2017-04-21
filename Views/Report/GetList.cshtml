@@ -1,0 +1,40 @@
+﻿@{
+Layout=null;
+}
+@using DBFinanceLinq;
+@model IQueryable<PurchasedProducts>
+<table class="table table-striped" id="reportData">
+    <thead>
+        <tr>
+            <th>产品号</th>
+            <th>产品</th>
+            <th>成立日</th>
+            <th>到期日</th>
+            <th>天数</th>
+            <th>购买金额</th>
+            <th>收益</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PurchasedProId</td>
+                <td>@item.ProductName</td>
+                <td>@item.PurchasedDate.Value.ToShortDateString()</td>
+                <td>@item.PurchasedDueDate.Value.ToShortDateString()</td>
+                <td>@item.PurchasedDays</td>
+                <td>@item.PurchasedAmount</td>
+                <td>@item.ReturnAmount</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="6"></td>
+            <td>@ViewBag.TotalReturnAmount</td>
+        </tr>
+    </tfoot>
+</table>
