@@ -50,6 +50,8 @@ namespace CZDailyFinance.Controllers
                 product.ReturnRate = productModel.ReturnRate;
                 product.ManagementRate = productModel.ManagementRate;
                 product.PurchasedAmount = productModel.PurchasedAmount;
+                product.UpdatedBy = "System";
+                product.UpdatedDate = DateTime.Today;
                 context.SubmitChanges();
             }
             return new OKJsonResult();
@@ -67,6 +69,8 @@ namespace CZDailyFinance.Controllers
             product.ReturnRate = productModel.ReturnRate;
             product.ManagementRate = productModel.ManagementRate;
             product.PurchasedAmount = productModel.PurchasedAmount;
+            product.CreatedBy = "System";
+            product.CreatedDate = DateTime.Today;
             context.PurchasedProducts.InsertOnSubmit(product);
             context.SubmitChanges();
             return new OKJsonResult();

@@ -25,7 +25,7 @@ namespace CZDailyFinance.Controllers
             var purchasedProducts = context.PurchasedProducts.AsQueryable();
             if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
             {
-                purchasedProducts = context.PurchasedProducts.Where(q => q.PurchasedDate > Convert.ToDateTime(startDate) && q.PurchasedDueDate < Convert.ToDateTime(endDate));
+                purchasedProducts = context.PurchasedProducts.Where(q => q.PurchasedDueDate > Convert.ToDateTime(startDate) && q.PurchasedDueDate < Convert.ToDateTime(endDate));
             }
             return purchasedProducts;
         }
