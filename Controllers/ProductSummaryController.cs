@@ -84,12 +84,21 @@ namespace CZDailyFinance.Controllers
             return new OKJsonResult();
         }
 
+        [HttpPost]
+        public JsonResult DeleteMultiPurchasedProducts(string ids)
+        {
+            List<PurchasedProducts> products = new List<PurchasedProducts>();
+            string[] purchasedProductIds=ids.Split(',');
+            foreach(var id in purchasedProductIds)
+            {
+                products.Add(context.PurchasedProducts.FirstOrDefault(q => q.PurchasedProId ==Convert.ToInt32 (id)));
+            }
+            context.PurchasedProducts.DeleteAllOnSubmit(products);
+            context.SubmitChanges();
+            return new OKJsonResult();
+        }
 
-        //public ViewResult DeletePurchasedProduct()
-        //{
-        //    return View();
-        //}
-
+      
         public JsonResult List(bool isExpired)
         {
             IQueryable<PurchasedProducts> productList = null;
