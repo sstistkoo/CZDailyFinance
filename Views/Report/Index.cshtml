@@ -19,11 +19,11 @@
         });
 
         $("#exportReport").click(function () {
-            $.post($(this).attr("data-url"), { startDate: $("#startDate").val(), endDate: $("#endDate").val() }, function () {
-                //alert("success");
-                window.location.href = '/Report/Index';
+            $.post($(this).attr("data-url"), { startDate: $("#startDate").val(), endDate: $("#endDate").val() }, function (data) {
+          
+                window.location.href= data.successData;
             });
-           // return false;
+            return false;
         })
     })
 </script>

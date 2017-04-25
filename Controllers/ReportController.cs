@@ -40,34 +40,42 @@ namespace CZDailyFinance.Controllers
         private string GetCsvString(string startDate, string endDate)
         {
             StringBuilder csvString = new StringBuilder();
-            csvString.Append("PurchasedProId,ProductName,PurchasedDate,PurchasedDueDate,PurchasedDays,PurchasedAmount,ReturnAmount");
+            csvString.Append("产品号,产品,成立日,到期日,天数,购买金额,收益");
             var query = GetPurchasedProductsList(startDate, endDate);
-            foreach(var item in query)
+            decimal? totalReturnAmount = 0;
+            //csv body
+            foreach (var item in query)
             {
-                csvString.Append(Environment.NewLine);
+                csvString.AppendLine();
                 csvString.Append(item.PurchasedProId).Append(",");
-                csvString.Append(item.ProductName).Append(",");
-                csvString.Append(item.PurchasedDate).Append(",");
-                csvString.Append(item.PurchasedDueDate).Append(",");
+                csvString.Append(ConvertToCsvString(item.ProductName)).Append(",");
+                csvString.Append(string.Format("{0}", item.PurchasedDate.HasValue ? ConvertToCsvString(item.PurchasedDate.Value.ToShortDateString()) : string.Empty)).Append(",");
+                csvString.Append(string.Format("{0}", item.PurchasedDueDate.HasValue ? ConvertToCsvString(item.PurchasedDueDate.Value.ToShortDateString()) : string.Empty)).Append(",");
                 csvString.Append(item.PurchasedDays).Append(",");
-                csvString.Append(item.PurchasedAmount).Append(",");
-                csvString.Append(item.ReturnAmount);
+                csvString.Append(string.Format("{0}", item.PurchasedAmount.HasValue ? ConvertToCsvString(item.PurchasedAmount.Value.ToString("C2")) : string.Empty)).Append(",");
+                csvString.Append(string.Format("{0}", item.ReturnAmount.HasValue ? ConvertToCsvString(item.ReturnAmount.Value.ToString("C2")) : string.Empty));
+                if (item.ReturnAmount != null)
+                {
+                    totalReturnAmount += item.ReturnAmount;
+                }
             }
+
+            //footer
+            csvString.AppendLine();
+            csvString.Append(",").Append(",").Append(",").Append(",").Append(",").Append(",");
+            csvString.Append(string.Format("{0}", ConvertToCsvString(totalReturnAmount.HasValue ? totalReturnAmount.Value.ToString("C2") : string.Empty)));
+
             return csvString.ToString();
         }
 
-        public string SaveTempFile(string fileName,string content)
-        {
-            
-        }
         public ActionResult ExportClick(string startDate, string endDate)
         {
-            string csvString = GetCsvString(startDate,endDate);
+            string csvString = GetCsvString(startDate, endDate);
 
             //cloud method
             string fileName = "FinanceCloud.csv";
-            string relativeFilePathName = SaveTempFile(fileName,csvString);
-
+            string filePathName = SaveTempFile(fileName, csvString);
+            return new OKJsonResult(filePathName);
 
             //string exportFileName = "Export" + DateTime.Now.ToString("yyyyMMddHHmmss"); 
             //System.Web.HttpContext context = System.Web.HttpContext.Current;
@@ -81,24 +89,55 @@ namespace CZDailyFinance.Controllers
             ////context.Response.OutputStream.Write(fileData, 0, fileData.Length);    
             //context.Response.Flush();
             //context.Response.End();
-
-            //System.IO.File.WriteAllText("D://FinanceReport.csv", csvString);
-            //return new OKJsonResult();//可以用
-
-          // return File(csvString,"text/csv","FinanceReport.csv");
-
-          // return File(new System.Text.UTF8Encoding().GetBytes(csvString), "text/csv", "FinanceReport.csv"); //the return action is FileContentResult好像没用
-
-
         }
 
-        [HttpGet]
-        public ActionResult Download(string file)
+        public string SaveTempFile(string fileName, string contents)
         {
-            string fullPath = Path.Combine(Server.MapPath("~/FileDownload"), file);
-            return File(fullPath, "application/vnd.ms-excel", file);
+            string _tempFolder;
+            _tempFolder = Server.MapPath("/temp");
+            if (!Directory.Exists(_tempFolder))
+                Directory.CreateDirectory(_tempFolder);
+            string fullName = Path.Combine(_tempFolder, fileName);
+            if (System.IO.File.Exists(fullName))
+                System.IO.File.Delete(fullName);
+            try
+            {
+                /***Issue:The CSV File with chinese will appear incorrect (下载的CSV文件中中文会出现乱码)***/
+                //UnicodeEncoding uniEncoding = new UnicodeEncoding();
+                //byte[] buffer = uniEncoding.GetBytes(contents);
+                //using(FileStream fileStream=new FileStream(fullName,FileMode.Create))
+                //{
+                //    fileStream.Write(buffer, 0, uniEncoding.GetByteCount(contents));                  
+                //    fileStream.Close();
+                //}
+                /***Issue:The CSV File with chinese will appear garbled (下载的CSV文件中中文会出现乱码)***/
+
+                /***Solution:The CSV File with chinese will appear incorrect (下载的CSV文件中中文会出现乱码)***/
+                byte[] buffer = Encoding.Default.GetBytes(contents);
+                using (FileStream fileStream = new FileStream(fullName, FileMode.Create))
+                {
+                    fileStream.Write(buffer, 0, Encoding.Default.GetByteCount(contents));
+                    fileStream.Close();
+                }
+                /***Solution:The CSV File with chinese will appear garbled (下载的CSV文件中中文会出现乱码)***/
+
+
+                return string.Format("{0}/{1}", "/temp", fileName);
+            }
+            catch
+            {
+                if (System.IO.File.Exists(fullName))
+                    System.IO.File.Delete(fullName);
+            }
+            return null;
         }
 
-       
+        public static string ConvertToCsvString(string source)
+        {
+            return string.IsNullOrEmpty(source) ? source : "\"" + source.Replace("\"", "\"\"") + "\"";//Just replace" as \"; Eg:"Hello"=>"\"Hello\""
+        }
+
+
+
     }
 }

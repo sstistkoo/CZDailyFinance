@@ -26,8 +26,9 @@ Layout=null;
                 <td>@item.PurchasedDate.Value.ToShortDateString()</td>
                 <td>@item.PurchasedDueDate.Value.ToShortDateString()</td>
                 <td>@item.PurchasedDays</td>
-                <td>@item.PurchasedAmount</td>
-                <td>@item.ReturnAmount</td>
+                <td>@item.PurchasedAmount.Value.ToString("C2")</td>
+                @*<td>@item.ReturnAmount.HasValue?@item.ReturnAmount.Value.ToString("C2"): ""</td>*@
+                <td>@if (item.ReturnAmount.HasValue) { @item.ReturnAmount.Value.ToString("C2")}</td>
             </tr>
         }
     </tbody>
