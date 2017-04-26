@@ -23,11 +23,10 @@ Layout=null;
             <tr>
                 <td>@item.PurchasedProId</td>
                 <td>@item.ProductName</td>
-                <td>@item.PurchasedDate.Value.ToShortDateString()</td>
-                <td>@item.PurchasedDueDate.Value.ToShortDateString()</td>
+                <td> @if(item.PurchasedDate.HasValue){ @item.PurchasedDate.Value.ToShortDateString()}</td>
+                <td>@if(item.PurchasedDueDate.HasValue){@item.PurchasedDueDate.Value.ToShortDateString()}</td>
                 <td>@item.PurchasedDays</td>
-                <td>@item.PurchasedAmount.Value.ToString("C2")</td>
-                @*<td>@item.ReturnAmount.HasValue?@item.ReturnAmount.Value.ToString("C2"): ""</td>*@
+                <td>@if(item.PurchasedAmount.HasValue){@item.PurchasedAmount.Value.ToString("C2")}</td>
                 <td>@if (item.ReturnAmount.HasValue) { @item.ReturnAmount.Value.ToString("C2")}</td>
             </tr>
         }

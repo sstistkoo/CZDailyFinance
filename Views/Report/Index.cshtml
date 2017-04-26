@@ -6,10 +6,11 @@
 时间：从<input type="text" id="startDate" />到<input type="text" id="endDate" />
 <button id="searchReport" data-url="Report/GetList">查询</button>
 <button id="exportReport" data-url="Report/ExportClick">导出数据</button>
+<button id="importReport" data-url="Report/ImportClick">导入数据</button>
 
 @Html.Action("GetList", "Report");
 <script type="text/javascript">
-    $(function () {
+    $(function () {     
         $("#searchReport").click(function () {
             $.post($(this).attr("data-url"), { startDate: $("#startDate").val(), endDate: $("#endDate").val() }, function (data) {
                 $("#reportData").html(data);
@@ -20,10 +21,24 @@
 
         $("#exportReport").click(function () {
             $.post($(this).attr("data-url"), { startDate: $("#startDate").val(), endDate: $("#endDate").val() }, function (data) {
-          
-                window.location.href= data.successData;
+                window.location.href = data.successData;
+            });
+            return false;
+        });
+
+        $("#importReport").click(function () {
+            $.post($(this).attr("data-url"), function (data) {
+                if(data.success)
+                {
+                    alert("Upload Successfully");
+                }
+                if(data.error)
+                {
+                    alert(data.errorMessage);
+                }
             });
             return false;
         })
+
     })
 </script>

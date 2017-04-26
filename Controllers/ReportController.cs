@@ -7,6 +7,9 @@ using DBFinanceLinq;
 using CZDailyFinance.MvcExtensions;
 using System.Text;
 using System.IO;
+using System.Data;
+using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace CZDailyFinance.Controllers
 {
@@ -66,6 +69,92 @@ namespace CZDailyFinance.Controllers
             csvString.Append(string.Format("{0}", ConvertToCsvString(totalReturnAmount.HasValue ? totalReturnAmount.Value.ToString("C2") : string.Empty)));
 
             return csvString.ToString();
+        }
+
+        public ActionResult ImportClick()
+        {
+            //SqlConnection con = new SqlConnection(@"Data Source=ADMIN-PC\SQLEXPRESS;Initial Catalog=DBFinance;Integrated Security=True");
+            ////string filepath = "C:\\params.csv";
+            //string filepath = @"D:\CZ Project\ShowTech\CZDailyFinance\CZDailyFinance\temp\FinanceCloud1.csv"; // CSV file Path
+
+            //StreamReader sr = new StreamReader(filepath);
+            //string line = sr.ReadLine();
+            //string[] value = line.Split(',');
+            //DataTable dt = new DataTable();
+            //DataRow row;
+            //foreach (string dc in value)
+            //{
+            //    dt.Columns.Add(new DataColumn(dc));
+            //}
+
+            //while (!sr.EndOfStream)
+            //{
+            //    value = sr.ReadLine().Split(',');
+            //    if (value.Length == dt.Columns.Count)
+            //    {
+            //        row = dt.NewRow();
+            //        row.ItemArray = value;
+            //        dt.Rows.Add(row);
+            //    }
+            //}
+            //SqlBulkCopy bc = new SqlBulkCopy(con.ConnectionString, SqlBulkCopyOptions.TableLock);
+            //bc.DestinationTableName = "PurchasedProducts";
+            //bc.BatchSize = dt.Rows.Count;
+            //con.Open();
+            //bc.WriteToServer(dt);
+            //bc.Close();
+            //con.Close();
+
+
+            string server = "ADMIN-PC\\SQLEXPRESS";
+            string database = "DBFinance";
+            string SQLServerConnectionString = String.Format("Data Source={0};Initial Catalog={1};Integrated Security=SSPI", server, database);
+
+
+            string CSVpath = @"D:\CZ Project\ShowTech\CZDailyFinance\CZDailyFinance\temp"; // CSV file Path
+            string CSVFileConnectionString = String.Format("Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};;Extended Properties=\"text;HDR=Yes;FMT=Delimited\";", CSVpath);
+
+            var AllFiles = new DirectoryInfo(CSVpath).GetFiles("*.CSV");
+            string File_Name = string.Empty;
+
+            foreach (var file in AllFiles)
+            {
+                try
+                {
+                    DataTable dt = new DataTable();
+                    using (OleDbConnection con = new OleDbConnection(CSVFileConnectionString))
+                    {
+                        con.Open();
+                        var csvQuery = string.Format("select * from [{0}]", file.Name);
+                        using (OleDbDataAdapter da = new OleDbDataAdapter(csvQuery, con))
+                        {
+                            da.Fill(dt);
+                        }
+                    }
+
+                    using (SqlBulkCopy bulkCopy = new SqlBulkCopy(SQLServerConnectionString))
+                    {
+                        bulkCopy.ColumnMappings.Add(0, "ProductName");
+                        bulkCopy.ColumnMappings.Add(1, "PurchasedDate");
+                        bulkCopy.ColumnMappings.Add(2, "PurchasedDueDate");
+                        bulkCopy.ColumnMappings.Add(3, "PurchasedDays");
+                        bulkCopy.ColumnMappings.Add(4, "PurchasedAmount");
+                        bulkCopy.ColumnMappings.Add(5, "ReturnAmount");
+
+                        bulkCopy.DestinationTableName = "PurchasedProducts";
+                        bulkCopy.BatchSize = 0;
+                        bulkCopy.WriteToServer(dt);
+                        bulkCopy.Close();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //  MessageBox.Show(ex.Message, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return new ErrorJsonResult(ex.Message);
+                }
+            }
+            return new OKJsonResult();
         }
 
         public ActionResult ExportClick(string startDate, string endDate)
