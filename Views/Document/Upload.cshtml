@@ -1,0 +1,96 @@
+﻿@{
+    Layout = null;
+}
+
+
+<link href="~/Scripts/Plugins/jquery-fileUpload/jquery.fileupload.css" rel="stylesheet" />
+<!--注意底下id的名字必须为fileupload大小严格要求，不能擅自改为fileUpload不然会有一些问题-->
+<form id="fileupload" action="/Document/Upload" method="post" enctype="multipart/form-data">
+    <div class="row fileupload-buttonbar">
+        <div class="col-sm-12 fileupload-buttons">
+            <span class="btn btn-success btn-sm fileinput-button">
+                <span><i class="fa fa-plus"></i>Add file(s)...</span>
+                <input type="file" name="files[]" multiple />
+            </span> 
+            <button type="submit" class="btn btn-primary btn-sm start"><i class="fa fa-upload"></i>Start All</button>  
+            <button type="reset" class="btn btn-warning btn-sm cancel"><i class="fa fa-ban"></i> Cancel All</button> 
+            <button type="button" class="btn btn-default btn-sm" id="btnRefresh" style="margin-left:100px;"><i class="fa fa-refresh"></i> Refresh</button>
+        </div> 
+    </div>
+
+    <table role="presentation" class="table table-striped">
+        <tbody class="files">
+        </tbody>
+    </table> 
+
+    <input type="button" id="clickTest" onclick="fireAlert()" value="测试" />
+
+</form>
+
+<script type="text/javascript">
+    function fireAlert()
+    {
+        alert("success");
+    }
+</script>
+
+<script id="template-upload" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-upload">
+        <td>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </td>
+        <td>
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+            </div>
+        </td>
+        <td>
+            {% if (!i && !o.options.autoUpload) { %}
+            <button class="btn btn-primary btn-sm start" disabled>
+                <span><i class="fa fa-upload"></i> Start</span>
+            </button>
+            {% } %}
+            {% if (!i) { %}
+            <button class="btn btn-warning btn-sm cancel">
+                <span><i class="fa fa-ban"></i> Cancel</span>
+            </button>
+            {% } %}
+        </td>
+    </tr>
+    {% } %}
+</script>
+<!-- The template to display files available for download -->
+<script id="template-download" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-download">
+        <td>
+            <p class="name"> {%=file.name%} </p>
+        </td>
+        <td>
+            <span class="size">{%=o.formatFileSize(file.size)%}</span>
+        </td>
+        <td>
+            {% if (file.error) { %}
+            <button class="delete" ">Delete</button>
+            <span class="error" style='color:red;'>Upload fail:{%=file.error%}</span>
+            {% } else { %}
+            &nbsp;
+            {% } %}
+        </td>
+    </tr>
+    {% } %}
+</script>
+
+<script src="~/Scripts/jquery-2.1.1.js"></script>
+<script src="~/Scripts/jquery-ui-1.10.4.custom.js"></script>
+<script src="~/Scripts/jquery.ui.widget.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/tmpl.min.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/jquery.iframe-transport.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/jquery.fileupload.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/jquery.fileupload-process.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/jquery.fileupload-validate.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/jquery.fileupload-ui.js"></script>
+<script src="~/Scripts/Plugins/jquery-fileUpload/main.js"></script>

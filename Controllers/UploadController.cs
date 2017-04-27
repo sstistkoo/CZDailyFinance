@@ -50,6 +50,11 @@ namespace CZDailyFinance.Controllers
             return File(FileVirtualPath, "application/force-download", Path.GetFileName(FileVirtualPath));
         }
 
+        public ActionResult BasicJqueryFileUpload()
+        {
+            return View();
+        }
+
       
 
     }

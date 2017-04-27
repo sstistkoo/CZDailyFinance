@@ -1,0 +1,51 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Document</h2>
+<div class="well">
+    <button type="button" class="btn btn-primary btn-sm" id="uploadFileBtn" data-url="/Document/Upload">Upload File</button>
+    <button type="button" class="btn btn-danger btn-sm" id="deleteMulFilesBtn" data-url="/Document/MultiDelete">Delete File</button>
+</div>
+<div id="dialogSection"></div>
+<table id="listTable">
+
+</table>
+<a class="downloadLink" target="_blank" href="/Document/Download?DocFileId">Download</a>
+<script type="text/javascript">
+    $(function () {
+        $("#uploadFileBtn").click(function () {
+            $.ajax({
+                type: "get",
+                url: $(this).attr("data-url"),
+                success: function (data) {
+                    $("#dialogSection").html(data).dialog({
+                        height: 200,
+                        width: 600
+                    })
+                }
+            });
+            return false;
+        });
+
+        $("#listTable").dataTable({
+            ajaxSource: "/Document/List",
+            serverSide: true,
+            columns: [
+                {
+                    data:"DocFileId"
+                },
+                {
+                    data: "FileName", title: "File Name",
+                    render: function (data, type, row) {
+                        return'<a class="downloadLink" target="_blank" href="/Document/Download/'+row.DocFileId+'">'+data+'</a>'
+                    }
+                },
+                {
+                    data:"FileSize",title:"Size"
+                }
+
+            ]
+        })
+    })
+</script>
