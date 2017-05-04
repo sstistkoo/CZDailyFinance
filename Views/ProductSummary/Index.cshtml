@@ -1,11 +1,13 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Index"; 
 }
+<script src="~/Scripts/jquery-ui-1.10.4.custom.js"></script>
 @model DBFinanceLinq.PurchasedProducts
-
 <h2>购买产品信息</h2>
 <button id="createProduct">Add Product</button>
 <button id="multipleDeleteBtn" class="btn btn-danger" data-confirm="确定要删除吗？" data-url="/ProductSummary/DeleteMultiPurchasedProducts">批量删除</button>
+
+
 <div id="addDialog">
     @*<form>
             <fieldset>
@@ -28,6 +30,7 @@
             </fieldset>
         </form>*@
 </div>
+
 <div>
     <div class="btn-group" style="float:right">
         <button id="activeBtn" type="button" class="btn btn-default active">现有的</button>
@@ -35,16 +38,32 @@
     </div>
 </div>
 
+<div>
+   @if (ViewBag.BankNames != null)
+{
+    <div id="bankNames">
+        <input type="radio" id="所有银行" /><label for="所有银行">所有银行</label>
+        @foreach(var bankName in ViewBag.BankNames)
+        {     
+        <input type="radio" id="@bankName"><label for="@bankName">@bankName</label>  
+        }
+    </div>
+}
+   
+</div>
+
 <table id="listTable">
     <tfoot>
         <tr>
-            <th colspan="7" style="text-align:right">Total:</th>
+            <th colspan="8" style="text-align:right">Total:</th>
             <th colspan="5"></th>
         </tr>
     </tfoot>
 </table>
 
 <script type="text/javascript">
+
+
     $(function () {
         //var dialog;
         //dialog = $("#addDialog").dialog({
@@ -59,6 +78,16 @@
         //        }
         //    }
         //});
+     
+
+        if ($("#bankNames").length) {
+            $("#bankNames").buttonset();
+            $("#bankNames :radio").click(function () {
+                var bankName = $("#bankNames :radio:checked").attr("id");
+                var table = $("#listTable").DataTable();
+                table.column(11).search(bankName).draw();
+            })
+        };
 
         function addProduct() {
             //$.post("/ProductSummary/AddProduct");//不能简单的这么应用,否则Controller绑定的PurchasedProducts productModel为NULL
@@ -154,6 +183,7 @@
             serverSide: true,
             serverParams: function (aoData) {
                 aoData.push({ "name": "isExpired", "value": $("#recycleBtn").hasClass("active") });
+                aoData.push({ "name": "bankName", "value": $("#bankNames :radio:checked").attr("id") });
             },
             sorting: [[5, "desc"]],
             columns: [
@@ -212,6 +242,9 @@
                                 return actualRate.toFixed(2)+"%";
                             }
                         }
+                    },
+                    {
+                        data:"BankName", visible:false
                     },
                     {
                         data: null, orderable: false, width: 115, render: function (data, type, row) {
@@ -291,14 +324,23 @@
                         i : 0;
                 };
 
+                if ($("#recycleBtn").hasClass("active"))
+                    {
                 //Total over all pages
                 var total = api.column(8).data().reduce(function (a, b) { return intVal(a) + intVal(b); }, 0);
                 //Total over this page
                 var pageTotal = api.column(8, { page: 'current' }).data().reduce(function (a, b) { return a + b; }, 0);
                 //Update footer
                 $(api.column(8).footer()).html(
-                    "$" + pageTotal + "($" + total + " total)"
-                    );
+                    "￥" + pageTotal  );
+                }
+                else
+                {
+                    var pageTotal = api.column(7, { page: 'current' }).data().reduce(function (a, b) { return a + b; }, 0);
+                    //Update footer
+                    $(api.column(7).footer()).html(
+                        "￥" + pageTotal);
+                }
             }
         });
         //注意一定要在加载datatable后面（DETAIL）
